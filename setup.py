@@ -4,12 +4,12 @@ import re
 from setuptools import setup, find_packages
 
 v = open(
-    os.path.join(os.path.dirname(__file__), "nzalchemy", "__init__.py")
+    os.path.join(os.path.dirname(__file__), "sqlalchemy-netezza", "nzalchemy", "__init__.py")
 )
 VERSION = re.compile(r'.*__version__ = "(.*?)"', re.S).match(v.read()).group(1)
 v.close()
 
-readme = os.path.join(os.path.dirname(__file__), '..',"README.md")
+readme = os.path.join(os.path.dirname(__file__), '.',"README.md")
 
 
 setup(
