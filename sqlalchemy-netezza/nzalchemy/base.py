@@ -40,6 +40,7 @@ from sqlalchemy import exc
 from sqlalchemy import schema
 from sqlalchemy import sql
 from sqlalchemy import util
+from sqlalchemy import text
 from sqlalchemy.engine import default
 from sqlalchemy.engine import reflection
 from sqlalchemy.sql import compiler
@@ -49,6 +50,7 @@ from sqlalchemy.sql import sqltypes
 from sqlalchemy.sql import util as sql_util
 from sqlalchemy.schema import DDLElement
 from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.sql.schema import Column, MetaData, Table
 
 from sqlalchemy.types import BOOLEAN
 from sqlalchemy.types import BIGINT
@@ -885,11 +887,11 @@ class NetezzaDialect(default.DefaultDialect):
     #referenced
     def _get_default_schema_name(self, connection):
         log.debug("-->")
-        return connection.scalar("select current_schema")
+        return connection.scalar(text("select current_schema"))
 
     def _get_current_schema_name(self, connection):
         log.debug("-->")
-        return connection.scalar("select current_schema")
+        return connection.scalar(text("select current_schema"))
 
     def is_system_in_lowercase(self):
         log.debug("-->")
@@ -902,16 +904,41 @@ class NetezzaDialect(default.DefaultDialect):
             schema = self._get_current_schema_name(connection)
         log.debug("has_table_details : " + schema + "-" + table_name)
         if not self.is_system_in_lowercase(): 
-            table_name=self.denormalize_name(table_name)
-            schema=self.denormalize_name(schema)
+            table_name = self.denormalize_name(table_name)
+            schema = self.denormalize_name(schema)
         log.debug("has_table_details after denormalize : " + schema + "-" + table_name)
-        cursor = connection.execute(
-            sql.text( 'select count(*) from _v_table where objid > 200000 and tablename = :name and schema = :schema'
-            ).bindparams(
-                sql.bindparam( "name", util.text_type(table_name), type_ = sqltypes.Unicode ),
-                sql.bindparam( "schema", util.text_type(schema), type_ = sqltypes.Unicode )
-                )
-        )
+        # stmt = sql.text('select count(*) from _v_table where objid > 200000 and tablename = :name and schema = :schema')
+        # stmt = stmt.bindparams(
+        #         sql.bindparam("name", util.text_type(table_name), type_ = sqltypes.Unicode),
+        #         sql.bindparam("schema", util.text_type(schema), type_ = sqltypes.Unicode)
+        #         # sql.bindparam("name", table_name),
+        #         # sql.bindparam("schema", schema)
+        #         )
+        
+        # t = Table('_v_table',
+        #         MetaData(),
+        #         Column('objid'),
+        #         Column('tablename'),
+        #         Column('schema')
+        #     )
+        # stmt = sql.select(sql.text('count(*)')).select_from(t).\
+        #     where(sql.and_(
+        #         sql.text('objid > 200000'),
+        #         t.c.tablename == sql.bindparam("name", table_name),
+        #         t.c.schema == sql.bindparam("schema", schema)
+        #         )
+        #     )
+        stmt = sql.text(f"select count(*) from _v_table where objid > 200000 and tablename = '{table_name}' and schema = '{schema}'")
+        # stmt = sql.text(f"select count(*) from _v_table where objid > 200000 and tablename = :name and schema = :schema")
+        # cursor = connection.execute(stmt, {"name":table_name, "schema":schema})
+        cursor = connection.execute(stmt)
+        # cursor = connection.execute(
+        #     # sql.text("select count(*) from _v_table where objid > 200000 and tablename = 'WVK_DOCUMENTS' and schema = 'COGNOS'"),
+        #     sql.text("select count(*) from _v_table where objid > 200000 and tablename = :name and schema = :schema").bindparams(
+        #     name="WVK_DOCUMENTS", schema="COGNOS")
+    
+        #     )
+
         resultList = cursor.first()
         val = bool(resultList[0])
         log.debug(resultList)
