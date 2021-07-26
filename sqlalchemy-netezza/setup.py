@@ -33,9 +33,9 @@ setup(
     ],
     keywords="SQLAlchemy IBM nz",
     project_urls={
-        "Documentation": "https://github.com/IBM/nzalchemy/wiki",
-        "Source": "https://github.com/IBM/nzalchemy",
-        "Tracker": "https://github.com/IBM/nzalchemy/issues",
+        "Documentation": "https://github.com/ArVar/nzalchemy/wiki",
+        "Source": "https://github.com/ArVar/nzalchemy",
+        "Tracker": "https://github.com/ArVar/nzalchemy/issues",
     },
     packages=find_packages(include=["nzalchemy"]),
     include_package_data=True,
