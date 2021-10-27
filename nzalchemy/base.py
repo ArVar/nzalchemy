@@ -48,7 +48,7 @@ from sqlalchemy.sql import elements
 from sqlalchemy.sql import expression
 from sqlalchemy.sql import sqltypes
 from sqlalchemy.sql import util as sql_util
-from sqlalchemy.schema import DDLElement
+from sqlalchemy.schema import DDLElement, SchemaItem
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql.schema import Column, MetaData, Table
 
@@ -520,6 +520,28 @@ class NetezzaDDLCompiler(compiler.DDLCompiler):
             return clause.format(columns=columns)
         else:
             return ''
+
+class DistributeOn(SchemaItem):
+    '''Represents a distribute on clause'''
+
+    def __init__(self, *column_names):
+        '''Use like:
+        my_table_1 = Table('my_table_1', metadata,
+            Column('id_key', BIGINT),
+            Column('nbr', BIGINT),
+            DistributeOn('id_key')
+        )
+        my_table_2 = Table('my_table_2', metadata,
+            Column('id_key', BIGINT),
+            Column('nbr', BIGINT),
+            DistributeOn('random')
+        )
+        '''
+        self.column_names = column_names if column_names else ('RANDOM',)
+
+    def _set_parent(self, parent):
+        self.parent = parent
+        parent.distribute_on = self
 
 class NetezzaTypeCompiler(compiler.GenericTypeCompiler):
 
